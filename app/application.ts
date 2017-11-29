@@ -1,7 +1,7 @@
 class Point {
     x: number;
     y: number;
-    constructor(x: number, y:number) {
+    constructor(x : number, y: number) {
         this.x = x;
         this.y = y;
     }
@@ -23,15 +23,15 @@ class Vector extends Point {
 }
 
 class Rect {
-    topLeft: Point;
-    bottomRight: Point;
+    topLeft : Point;
+    bottomRight : Point;
 
-    constructor(left: number, top: number, right: number, bottom: number){
+    constructor(left : number, top: number, right: number, bottom: number) {
         this.topLeft = new Point(left, top);
         this.bottomRight = new Point(right, bottom);
     }
 
-    clone(): Rect {
+    clone() : Rect {
         return new Rect(this.topLeft.x, this.topLeft.y, this.bottomRight.x, this.bottomRight.y);
     }
 
@@ -40,7 +40,7 @@ class Rect {
         this.bottomRight.add(point);
     }
 
-    moveTo(rect: Rect){
+    moveTo(rect: Rect) {
         this.topLeft.x = rect.topLeft.x;
         this.topLeft.y = rect.topLeft.y;
         this.bottomRight.x = rect.bottomRight.x;
@@ -83,10 +83,10 @@ enum Side {
 }
 
 class Obstacle extends Rect {
-    checkCollision(anotherRect: Rect): Side {
+    checkCollision(anotherRect : Rect) : Side {
         var w = 0.5 * (this.width() + anotherRect.width());
         var h = 0.5 * (this.height() + anotherRect.height());
-        var dx = this.centerX() - anotherRect.centerX()   ;
+        var dx = this.centerX() - anotherRect.centerX();
         var dy = this.centerY() - anotherRect.centerY();
 
         if (Math.abs(dx) <= w && Math.abs(dy) <= h) {
@@ -100,14 +100,14 @@ class Obstacle extends Rect {
         } else {
             return Side.None;
         }
-
     }
 }
 
 class Sprite extends Obstacle {
     sprite: HTMLElement;
     isVisible: Boolean;
-    constructor(sprite: HTMLElement, left?: number, top?: number, right?: number, bottom?: number){
+
+    constructor(sprite: HTMLElement, left?: number, top?: number, right?: number, bottom?: number) {
         bottom = bottom || sprite.offsetTop + sprite.offsetHeight;
         right = right || sprite.offsetLeft + sprite.offsetWidth;
         top = top || sprite.offsetTop;
@@ -154,15 +154,15 @@ class Ball extends Sprite {
     constructor(sprite: HTMLElement, dir: Vector) {
         var radius = parseInt(getComputedStyle(sprite)['border-top-left-radius']);
         super(sprite, sprite.offsetLeft, sprite.offsetTop, sprite.offsetLeft + 2 * radius, sprite.offsetTop + 2 * radius);
-        this.dir = dir;
-        this.radius = radius;
-        this.velocity = 2;
         this.sprite = sprite;
+        this.radius = radius;
+        this.velocity = 5;
+        this.dir = dir;
     }
 
-    calculateNewPosition() {
+    calculateNewPosition(): Rect {
         var newPosition = this.clone();
-        newPosition.add((this.dir));
+        newPosition.add(this.dir);
         return newPosition;
     }
 
@@ -179,27 +179,9 @@ class Ball extends Sprite {
         this.dir.x = Math.cos(angle) * this.velocity;
         this.dir.y = -Math.sin(angle) * this.velocity;
     }
-
-
-    setConstraints(minX: number, minY: number, maxX: number, maxY: number) {
-        this.wallLeft = new Obstacle(minX - this.radius, minY - this.radius, minX, maxY + this.radius);
-        this.wallTop = new Obstacle(minX - this.radius, minY - this.radius, maxX + this.radius, minY);
-        this.wallRight = new Obstacle(maxX, minY - this.radius, maxX + this.radius, maxY + this.radius);
-        this.wallBottom = new Obstacle(minX - this.radius, maxY, maxX + this.radius, maxY + this.radius);
-    }
-
-    moveTo(rect: Rect) {
-        super.moveTo(rect);
-
-        let {x: posX, y: posY} = this.topLeft;
-
-        this.sprite.style.left = posX + 'px';
-        this.sprite.style.top = posY + 'px';
-    }
-
 }
 
-class Paddle extends Sprite{
+class Paddle extends Sprite {
     constructor(sprite: HTMLElement, public maxRight: number) {
         super(sprite);
     }
@@ -240,7 +222,7 @@ class Brick extends Sprite {
 
 }
 
-enum GamState {
+enum GameState {
     Running,
     GameOver
 }
@@ -251,8 +233,8 @@ enum KeyCodes {
 }
 
 class Game {
-    loopInterval: number = 5;
-    gameState: GamState;
+    loopInterval: number = 10;
+    gameState: GameState;
     ball: Ball;
     paddle: Paddle;
     bricks: Array<Brick> = [];
@@ -264,42 +246,37 @@ class Game {
     wallRight: Obstacle;
     wallBottom: Obstacle;
 
-    constructor(ballElement: HTMLElement, paddle: HTMLElement, bricks: HTMLCollection, boardElement: HTMLElement) {
-        this.gameState = GamState.Running;
+    constructor(ballElement : HTMLElement, paddle: HTMLElement, bricks: HTMLCollection, boardElement : HTMLElement) {
+        this.gameState = GameState.Running;
         this.paddle = new Paddle(paddle, boardElement.offsetWidth);
+
         this.ball = new Ball(
             ballElement,
-            new Vector(1, -1)
+            new Vector(3, -3)
         );
 
         for (let i = 0; i < bricks.length; i++) {
             this.bricks.push(new Brick(<HTMLElement>bricks[i]));
         }
 
-        this.createWalls(this.ball.radius, boardElement.offsetWidth, boardElement.offsetHeight)
-
+        this.createWalls(this.ball.radius, boardElement.offsetWidth, boardElement.offsetHeight);
     }
 
-    createWalls(radius: number, maxX: number, maxY: number) {
-        this.wallLeft = new Obstacle( -radius,  -radius, 0, maxY + radius);
-        this.wallTop = new Obstacle( -radius,  -radius, maxX + radius, 0);
-        this.wallRight = new Obstacle(maxX,  -radius, maxX + radius, maxY + radius);
-        this.wallBottom = new Obstacle( -radius, maxY, maxX + radius, maxY + radius);
+    createWalls(radius : number, maxX : number, maxY : number) {
+        this.wallLeft = new Obstacle(-radius, -radius, 0, maxY + radius);
+        this.wallTop = new Obstacle(-radius, -radius, maxX + radius, 0);
+        this.wallRight = new Obstacle(maxX, -radius, maxX + radius, maxY + radius);
+        this.wallBottom = new Obstacle(-radius, maxY, maxX + radius, maxY + radius);
     }
 
     run() {
-        document.addEventListener('keyup', (e) => {
-            this.keyMap[e.keyCode] = false;
-        });
-        document.addEventListener('keydown', (e) => {
-            this.keyMap[e.keyCode] = true;
-        });
+        document.addEventListener('keyup', (e) => this.keyMap[e.keyCode] = false);
+        document.addEventListener('keydown', (e) => this.keyMap[e.keyCode] = true);
 
         setInterval(() => {
-            if (this.gameState !== GamState.Running) {
+            if (this.gameState !== GameState.Running) {
                 return;
             }
-
             var newBallPosition = this.ball.calculateNewPosition();
 
             if (this.keyMap[KeyCodes.LEFT]) {
@@ -309,7 +286,7 @@ class Game {
             }
 
             if (this.wallBottom.checkCollision(newBallPosition)) {
-                this.gameState = GamState.GameOver;
+                this.gameState = GameState.GameOver;
                 this.ball.hide();
                 return;
             }
@@ -335,8 +312,8 @@ class Game {
                     case (Side.Bottom):
                         this.ball.bounceHorizontal();
                         wasHit = true;
-                        break;
                 }
+
                 if (wasHit) {
                     brick.hide();
                     break;
@@ -348,10 +325,11 @@ class Game {
             }
 
             this.ball.moveTo(this.ball.calculateNewPosition());
-
         }, this.loopInterval)
     }
 }
+
+console.log('Hello from BrickBuster !!!');
 
 var game = new Game(
     <HTMLElement>document.getElementsByClassName("ball")[0],
